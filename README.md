@@ -47,17 +47,21 @@ When you start you will be asked for the KEY, then you can create the administra
 ## CI Agentes
 
 The agents are configured in their respective dockerfile based on the jenkins/ssh-agent:jdk11 image, we recommend copying from the examples and adding the required after the #PRIVILEGE session.
-
 Our agents are configured with ssh
+
 ### Public Key
 Run the following command
-        docker exec jenkins cat /id_rsa.pub
+```code 
+docker exec jenkins cat /id_rsa.pub
+```      
 
 The output must be assigned to the PUBKEY variable of the .env
 
 ### Private key
 Run the following command
-        docker exec jenkins cat /id_rsa
+```code 
+docker exec jenkins cat /id_rsa
+```
 
 Restart the infrastructure to update the changes
 
