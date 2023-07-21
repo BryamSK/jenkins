@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+    jenkins:
+      container_name: ${PROJECT_NAME}
+      build: .
+      restart: unless-stopped
+      privileged: true
+      user: root
+      expose:
+        - 8080
+        - 50000
+      environment:
+        - JAVA_OPTS="-Xmx2048m"
+      volumes:
+        - ./data:/var/jenkins_home
+        - /var/run/docker.sock:/var/run/docker.sock
+
+    nginx:
+      container_name: nginx-${PROJECT_NAME}
+      image: nginx:latest
+      depends_on:
+        - jenkins
+      ports:
+        - "80:80"
+        - "443:443"
+      volumes:
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ${CERT}:/etc/ssl/certs/file.crt
+        - ${CERTKEY}:/etc/ssl/private/file.key
+      restart: unless-stopped
+      links:
+        - "jenkins"
+      environment:
+        - TZ="${TZ}"
+
+    agentstacks:
+      build:
+        context: .
+        dockerfile: Dockerfile-agent-stacks
+      privileged: true
+      deploy:
+        replicas: 1
+      user: root
+      expose:
+        - 22
+      environment:
+        - JENKINS_AGENT_SSH_PUBKEY="${PUBKEY}"
+        - TZ="${TZ}"
+
+    agentdocker:
+      build:
+        context: .
+        dockerfile: Dockerfile-agentdocker 
+      privileged: true
+      deploy:
+        replicas: 1
+      user: root
+      expose:
+        - 22
+      volumes:
+        - agentdocker:/var/lib/docker
+      environment:
+        - JENKINS_AGENT_SSH_PUBKEY=${PUBKEY}"
+        - TZ="${TZ}"
+
+volumes:
+  agentdocker:

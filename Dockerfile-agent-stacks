@@ -1,0 +1,43 @@
+FROM jenkins/ssh-agent:jdk11
+USER root
+SHELL ["/bin/bash", "-c"]
+RUN apt-get update -y && apt upgrade -y
+RUN apt install -y wget git ca-certificates curl gnupg lsb-release sudo tar gzip
+
+#PRIVILEGE
+RUN usermod -a -G root jenkins
+RUN usermod -a -G sudo jenkins
+RUN cat /dev/null > /etc/sudoers
+RUN echo 'Defaults        env_reset' >> /etc/sudoers
+RUN echo 'Defaults        mail_badpass' >> /etc/sudoers
+RUN echo 'Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"' >> /etc/sudoers
+RUN echo 'root    ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+RUN echo 'jenkins ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+RUN echo '# Allow members of group sudo to execute any command' >> /etc/sudoers
+RUN echo '%sudo   ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+RUN echo '# See sudoers(5) for more information on "@include" directives:' >> /etc/sudoers
+RUN echo '@includedir /etc/sudoers.d' >> /etc/sudoers
+
+#INSALL STACKS EXAMPLE NVM JAVA14
+#install nvm
+USER jenkins
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+RUN source ~/.bashrc
+
+# Install OpenJDK Java 14 SDK
+USER root
+ENV JDK_VERSION 14.0.2
+ENV JDK_MAJOR_VERSION 14
+ENV JVM_DIR /opt/jdk14
+ENV JDK_DOWNLOAD http://storage.exoplatform.org/public/java/jdk/openjdk/${JDK_VERSION}/openjdk-${JDK_VERSION}_linux-x64_bin.tar.gz
+
+RUN mkdir -p "${JVM_DIR}"
+RUN wget -q --no-cookies --no-check-certificate \
+  -O "${JVM_DIR}/openjdk-${JDK_VERSION}-linux-x64.tar.gz" "${JDK_DOWNLOAD}" \
+  && cd "${JVM_DIR}" \
+  && tar --no-same-owner -xzf "${JVM_DIR}/openjdk-${JDK_VERSION}-linux-x64.tar.gz" \
+  && mv "${JVM_DIR}/jdk-${JDK_VERSION}" "${JVM_DIR}/java-${JDK_VERSION}-openjdk-x64" \
+  && ln -s "${JVM_DIR}/java-${JDK_VERSION}-openjdk-x64" "${JVM_DIR}/java-${JDK_MAJOR_VERSION}-openjdk-x64"
+
+ENV JAVA_HOME ${JVM_DIR}/java-${JDK_MAJOR_VERSION}-openjdk-x64
+RUN apt-get update -y && apt upgrade -y
