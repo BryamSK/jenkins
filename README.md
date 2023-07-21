@@ -49,15 +49,17 @@ When you start you will be asked for the KEY, then you can create the administra
 The agents are configured in their respective dockerfile based on the jenkins/ssh-agent:jdk11 image, we recommend copying from the examples and adding the required after the #PRIVILEGE session.
 
 Our agents are configured with ssh
-### Clave Publica
+### Public Key
 Run the following command
         docker exec jenkins cat /id_rsa.pub
 
 The output must be assigned to the PUBKEY variable of the .env
 
-### Clave Privada
+### Private key
 Run the following command
         docker exec jenkins cat /id_rsa
+
+Restart the infrastructure to update the changes
 
 Use the output to create the Global credential that you will later use to connect the Agents
 
